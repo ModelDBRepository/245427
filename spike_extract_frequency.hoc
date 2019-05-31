@@ -1,0 +1,139 @@
+// frequence meter
+objref rec, nil , inter_spike,  spike_indx, somaVm_late, somaD1_late, somaD2_late, somaT_late, abdVm_late
+objref abdD1_late, abdD2_late,nabdVm_late, nabdD1_late, nabdD2_late, abdT_late, nabdT_late
+
+spike_indx = new Vector()
+
+
+
+inter_spike = new Vector() // a vector to store spike time intervals
+ 
+soma rec = new NetCon(&v(0.5), nil) // create a netcon that watch the soma to reach a threshold 
+rec.threshold = -35  // record time indexes when V crosses threshold
+rec.record(spike_indx)
+nb_spikes_rejected = 8// ignore the first 10-1 = 9 interspike intervals
+nbr=nb_spikes_rejected 
+nb_spikes_recorded= 4// nb +1  of ISI from which instantaneous  frequency will be calculated 
+nbrec=nb_spikes_recorded
+nb_min = nb_spikes_rejected + nb_spikes_recorded  // ignore recordings with fewer spikes than this sum (3)
+
+
+proc freqmeter () {local t1, t2 
+   mean_freq = 0
+  
+ nbspikes = spike_indx.size() // calculate the number of spikes
+print "spike times are  ",  spike_indx.printf // 
+ t1 = spike_indx.x[nbr] // nbr th spike time
+ t2 = spike_indx.x[nbr+1] // nbr+1 th spike time 
+ print "t1 et t2 " , t1 ," " , t2 
+ index1 = somaT.indwhere(">=", t1+40) // time before the extracted spike
+ index2 = somaT.indwhere(">=", t2+40) //time after the extracted spike 
+ 
+ print "index1 is ", index1
+ print "index2 is ", index2
+ 
+ if (nbspikes > nb_min) {
+	 somaVm_late = new Vector()
+somaD1_late = new Vector()
+somaD2_late = new Vector()
+somaT_late = new Vector()
+
+abdVm_late = new Vector()
+abdD1_late = new Vector()
+abdD2_late = new Vector()
+abdT_late = new Vector()
+
+nabdVm_late = new Vector()
+nabdD1_late = new Vector()
+nabdD2_late = new Vector()
+nabdT_late = new Vector()
+	 
+ inter_spike.copy(spike_indx,nb_spikes_rejected,nb_min) // copy the vector to a new vector starting by the n th intervals
+ sub_nbspikes=inter_spike.size() // nb of spikes in the sub sample
+ inter_spike.deriv  // calculate spike time intervals (ISI)
+// inter_spike.printf 
+moy = inter_spike.mean() // calculate mean ISI
+// sd = inter_spike.stdev() // Calculate ISI STANDARD DEVIATION 
+// sem = inter_spike.stderr() // calculate ISI sem
+// time_total = inter_spike.sum() // calculate total time between the first and last spike 
+// mean_freq = (sub_nbspikes/time_total)*500 // mean firing frequency 
+
+// print "nb of spikes is  ",sub_nbspikes, "mean ISI is " , moy, "sd is " , sd, "sem is ", sem
+ print " mean ISI is ", moy
+
+somaVm_late.copy(somaVm,index1,index2) // copy the spikes of interest from the different compartment
+somaD1_late.copy(somaD1,index1,index2)
+somaD2_late.copy(somaD2,index1,index2)
+somaT_late.copy(somaT,index1,index2)
+
+abdVm_late.copy(abdVm,index1,index2)	
+abdD1_late.copy(abdD1,index1,index2)		
+abdD2_late.copy(abdD2,index1,index2)
+abdT_late.copy(abdT, index1,index2)		
+
+nabdVm_late.copy(nabdVm,index1,index2)	
+nabdD1_late.copy(nabdD1,index1,index2)		
+nabdD2_late.copy(nabdD2,index1,index2)
+nabdT_late.copy(nabdT, index1,index2)	
+
+strdef somaName
+		sprint (somaName, "%s%d%s%d%s%d%s%d%s", "I_soma_SD", soma.gbar_Na12, "_AIS", SIprox.gbar_Na12, "_AIS_length_", ais_length, "_ABD_length_", abd_length, ".txt")
+		print "soma file is ", somaName
+		
+		soma_analysis()
+		fsomaSum.aopen(somaSum)
+				fsomaSum.printf("\n %s\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t ", somaName, soma.gbar_Na12, SIprox.gbar_kdrDA, SIprox.gbar_Na12, abd_length, ais_length, iTh, threshold, AP, HW, peakIS, peakSD)
+			fsomaSum.close()
+			
+			fISI.aopen(ISISum) 
+			fISI.printf("\n %s\t%g\t%g\t%g\t%g\t%g\t", somaName,ais_length, abd_length, soma.gbar_Na12, SIprox.gbar_Na12, moy)
+			fISI.close()
+
+		strdef ABDname
+		sprint (ABDname, "%s%d%s%d%s%d%s%d%s", "I_ABD_SD", soma.gbar_Na12, "_AIS", SIprox.gbar_Na12, "_AIS_length_", ais_length, "_ABD_length_", abd_length, ".txt")
+		print "ABD file is ", ABDname
+		
+		abd_analysis()
+		fabdSum.aopen(abdSum)
+				fabdSum.printf("\n %s\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t ", ABDname, soma.gbar_Na12, SIprox.gbar_kdrDA, SIprox.gbar_Na12, abd_length, ais_length, iTh, threshold, AP, HW, peakIS, peakSD)
+			fabdSum.close()	
+		
+		strdef nABDname
+		sprint (nABDname, "%s%d%s%d%s%d%s%d%s", "I_nABD_SD", soma.gbar_Na12, "_AIS", SIprox.gbar_Na12, "_AIS_length_", ais_length, "_ABD_length_", abd_length, ".txt")
+		print "nABD file is ", nABDname		
+		
+		nabd_analysis()
+		fnabdSum.aopen(nabdSum)
+				fnabdSum.printf("\n %s\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t ", nABDname, soma.gbar_Na12, SIprox.gbar_kdrDA, SIprox.gbar_Na12, abd_length, ais_length, iTh, threshold, AP, HW, peakIS, peakSD)
+			fnabdSum.close()
+		
+
+		
+
+
+chdir("data")
+		fsoma.wopen(somaName)
+		fabd.wopen(ABDname)
+		fnabd.wopen(nABDname)
+		
+			for n=0, somaVm_late.size()-1{
+					
+					fsoma.printf("%g %g %g %g \n", somaT_late.x(n), somaVm_late.x(n), somaD1_late.x(n), somaD2_late.x(n))
+					fabd.printf("%g %g %g %g \n", abdT_late.x(n), abdVm_late.x(n), abdD1_late.x(n), abdD2_late.x(n))
+					fnabd.printf("%g %g %g %g \n", nabdT_late.x(n), nabdVm_late.x(n), nabdD1_late.x(n), nabdD2_late.x(n))
+					
+				} 
+			fsoma.close()
+			fabd.close()
+			fnabd.close()	
+			
+		
+print "controle spike extract1" 
+
+
+} else {
+	print "not enough spikes, increase duration of simulation " 
+	quit()
+}
+print "controle spike extract2" 
+}

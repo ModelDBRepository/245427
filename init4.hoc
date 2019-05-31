@@ -1,0 +1,42 @@
+load_file("nrngui.hoc")
+
+objectvar g[20]
+ngraph=0
+
+proc addgraph() { local ii	// define subroutine to add a new graph
+				// addgraph("variable", minvalue, maxvalue)
+	ngraph = ngraph+1
+	ii = ngraph-1
+	g[ii] = new Graph()
+	g[ii].size(0,tstop,$2,$3)
+	g[ii].xaxis()
+	g[ii].yaxis()
+	g[ii].addvar($s1,1,0)
+	g[ii].save_name("graphList[0].")
+	graphList[0].append(g[ii])
+}
+nrnmainmenu()			// create main menu
+nrncontrolmenu()		// create control menu
+
+/* Globals */
+
+tstop=8000
+dt=0.01
+celsius=35
+v_init=-70
+finitialize(v_init)
+steps_per_ms= 25
+
+
+load_file("subiter.hoc")
+
+load_file("cell_4.hoc")
+
+celldef()
+addgraph("soma.v(0.5)",-100,30) 
+
+load_file("variable_length_4.hoc")
+load_file("spike_extract_frequency.hoc")
+load_file("Spike_analysis.hoc")
+
+variable_length()

@@ -1,0 +1,137 @@
+
+
+objref timeS, dv2Peak
+
+
+proc soma_analysis(){
+	
+timeS = new Vector()
+dv2Peak = new Vector()
+	
+iTh = somaD1_late.indwhere(">=", 5)
+threshold = somaVm_late.x[iTh]
+print "index is : ", iTh
+print "threshold is : ", threshold	
+
+vMax = somaVm_late.max()
+iMax = somaVm_late.indwhere("==", vMax)
+AP = vMax-threshold
+print "AP ampl is : ", AP	
+
+vHalf = (AP/2)+threshold
+print "half amplitude is : ", vHalf
+
+timeS.indvwhere(somaVm_late, ">=", vHalf)
+iStart = timeS.min()
+iEnd = timeS.max()
+tStart = somaT_late.x[iStart]
+tEnd = somaT_late.x[iEnd]
+HW = tEnd-tStart
+print tStart, tEnd, HW
+
+for a=iTh, iMax-1 {		
+
+	if (somaD2_late.x[a]>=somaD2_late.x[a-1] && somaD2_late.x[a]>=somaD2_late.x[a+1] ){
+		print "dv2 is ", somaD2.x[a]
+	dv2Peak.append(somaD2_late.x[a])
+	print "nb de pics de dv2 ", dv2Peak.size()
+	lpeak = dv2Peak.size()-1
+	} 
+
+}	
+
+peakIS = dv2Peak.x[0]
+peakSD = dv2Peak.x[lpeak]
+print "peak IS ",peakIS, "peak SD  ", peakSD					
+}
+	 
+  
+	
+proc abd_analysis(){
+	
+timeS = new Vector()
+dv2Peak = new Vector()
+	
+iTh = abdD1_late.indwhere(">=", 10)
+threshold = abdVm_late.x[iTh]
+print "index is : ", iTh
+print "threshold is : ", threshold	
+
+vMax = abdVm_late.max()
+iMax = abdVm_late.indwhere("==", vMax)
+AP = vMax-threshold
+print "AP ampl is : ", AP	
+
+vHalf = (AP/2)+threshold
+print "half amplitude is : ", vHalf
+
+timeS.indvwhere(abdVm_late, ">=", vHalf)
+iStart = timeS.min()
+iEnd = timeS.max()
+tStart = abdT_late.x[iStart]
+tEnd = abdT_late.x[iEnd]
+HW = tEnd-tStart
+print tStart, tEnd, HW
+
+for a=iTh, iMax-1 {		
+
+	if (abdD2_late.x[a]>=abdD2_late.x[a-1] && abdD2_late.x[a]>=abdD2_late.x[a+1] ){
+		print "dv2 is ", abdD2_late.x[a]
+	dv2Peak.append(abdD2_late.x[a])
+	print dv2Peak.size()
+	lpeak = dv2Peak.size()-1
+	} 
+
+}	
+
+peakIS = dv2Peak.x[0]
+peakSD = dv2Peak.x[lpeak]
+print peakIS, peakSD					
+}	
+	
+	
+proc nabd_analysis(){
+	
+timeS = new Vector()
+dv2Peak = new Vector()
+	
+iTh = nabdD1_late.indwhere(">=", 10)
+threshold = nabdVm_late.x[iTh]
+print "index is : ", iTh
+print "threshold is : ", threshold	
+
+vMax = nabdVm_late.max()
+iMax = nabdVm_late.indwhere("==", vMax)
+AP = vMax-threshold
+print "AP ampl is : ", AP	
+
+vHalf = (AP/2)+threshold
+print "half amplitude is : ", vHalf
+
+timeS.indvwhere(nabdVm_late, ">=", vHalf)
+iStart = timeS.min()
+iEnd = timeS.max()
+tStart = nabdT_late.x[iStart]
+tEnd = nabdT_late.x[iEnd]
+HW = tEnd-tStart
+print tStart, tEnd, HW
+
+for a=iTh, iMax-1 {		
+
+	if (nabdD2_late.x[a]>=nabdD2_late.x[a-1] && nabdD2_late.x[a]>=nabdD2_late.x[a+1] ){
+		print "dv2 is ", nabdD2_late.x[a]
+	dv2Peak.append(nabdD2_late.x[a])
+	print dv2Peak.size()
+	lpeak = dv2Peak.size()-1
+	} 
+
+}	
+
+peakIS = dv2Peak.x[0]
+peakSD = dv2Peak.x[lpeak]
+print peakIS, peakSD					
+}		
+		
+
+
+

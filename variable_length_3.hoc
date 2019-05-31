@@ -1,0 +1,126 @@
+
+objref somaVm, somaT, somaD1, somaD2, abdVm, abdT, abdD1, abdD2, nabdVm, nabdT, nabdD1, nabdD2, fnabd, fabd, fsoma, fsomaSum, fabdSum, fnabdSum
+objref fais, faisSum,  aisVm, aisD1, aisD2, fISI
+
+proc variable_length(){
+	
+somaVm = new Vector()
+somaT = new Vector()
+somaD1 = new Vector()
+somaD2 = new Vector()
+
+abdVm = new Vector()
+abdT = new Vector()
+abdD1 = new Vector()
+abdD2 = new Vector()
+
+nabdVm = new Vector()
+nabdT = new Vector()
+nabdD1 = new Vector()
+nabdD2 = new Vector()
+
+fsomaSum = new File()
+fabdSum = new File()
+fnabdSum = new File()
+
+fsoma = new File()
+fabd = new File()
+fnabd = new File()
+fISI = new File()
+
+chdir("data")
+strdef somaSum
+sprint (somaSum, "%s", "Variable_AIS_Cell_3_soma_data.txt")
+fsomaSum.wopen(somaSum)
+fsomaSum.printf("%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t", "Parameter", "Na/K SD", "K_ais ", "Na_ais", "ABD lenght", "AIS length", "threshold index", "AP threshold", "AP amplitude", "AP half-width", "IS dv2", "SD dv2")		
+fsomaSum.close
+
+strdef abdSum
+sprint (abdSum, "%s", "Variable_AIS_Cell_3_ABD_data.txt")
+fabdSum.wopen(abdSum)
+fabdSum.printf("%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t", "Parameter", "Na/K SD", "K_ais ", "Na_ais", "ABD lenght", "AIS length", "threshold index", "AP threshold", "AP amplitude", "AP half-width", "IS dv2", "SD dv2")		
+fabdSum.close
+
+strdef nabdSum
+sprint (nabdSum, "%s", "Variable_AIS_Cell_3_nABD_data.txt")
+fnabdSum.wopen(nabdSum)
+fnabdSum.printf("%s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t %s\t", "Parameter", "Na/K SD", "K_ais ", "Na_ais", "ABD lenght", "AIS length", "threshold index", "AP threshold", "AP amplitude", "AP half-width", "IS dv2", "SD dv2")		
+fnabdSum.close
+
+strdef ISISum
+sprint (ISISum, "%s", "ISI_DATA_Cell_3.txt")
+fISI.wopen(ISISum)
+fISI.printf("%s\t %s\t %s\t %s\t %s\t %s\t ", "Parameter", "AIS length","ABD length","Na SD", "Na AIS",  "ISI")					
+fISI.close
+
+
+	
+for j=1, 5{					
+//Loop changing AIS length 
+	
+	SIprox.L = j*10
+	SIdistal.L = 10
+		
+		
+		for k=2, 4{
+		//loop changing gbar Na in the sd
+			{ 
+			
+			forsec  all { gbar_Na12 = k*25
+			
+						gbar_kdrDA= k*50
+			}
+			
+			SIprox.gbar_Na12= 5000
+				SIdistal.gbar_Na12 = 5000		
+				SIprox.gbar_kdrDA = 5000		
+				SIdistal.gbar_kdrDA = 5000
+				
+				axon.gbar_Na12=400
+				axon.gbar_kdrDA=400
+			}
+		
+		abd_length = dend1.L + dend1[1].L + dend1[2].L
+		ais_length = SIprox.L + SIdistal.L
+		print "ABD_length is ", abd_length
+		print "AIS_length is ", ais_length
+		print "AIS Na+ density is ", SIprox.gbar_Na12
+		print "SD Na+ density is ", dend1.gbar_Na12
+
+// recording Vm and time in corresponding vectors	geom_nseg to modify nbr of segments according to dend length
+			
+		geom_nseg()
+		diam_seg()
+		init(v_init)
+		
+		soma somaT.record(&t)	
+		soma somaVm.record(&v(0.5))
+		dend1[1] abdVm.record(&v(0.5))
+		dend1[1] abdT.record(&t)
+		dend1_1[1] nabdVm.record(&v(0.005))
+		dend1_1[1] nabdT.record(&t)	
+		run()
+		
+		somaD1.deriv(somaVm, dt)
+		somaD2.deriv(somaD1, dt)
+		
+		abdD1.deriv(abdVm, dt)	
+		abdD2.deriv(abdD1, dt)
+
+		nabdD1.deriv(nabdVm, dt)
+		nabdD2.deriv(nabdD1, dt)
+		
+		
+		freqmeter()
+
+print "controle bug1"			
+		}
+print "controle bug2"	
+	}		
+print "controle bug3"	
+quit()		
+}
+	
+
+
+	

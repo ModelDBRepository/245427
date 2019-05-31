@@ -1,0 +1,438 @@
+proc celldef() {
+  topol()
+  subsets()
+  geom()
+  biophys()
+  geom_nseg()
+diam_seg()
+}
+
+create soma, dend1[3], dend1_1[3], dend2[5], SDI, SIprox, SIdistal
+create axon
+
+proc topol() { local i
+  connect dend1(0), soma(0)
+  for i = 1, 2 connect dend1[i](0), dend1[i-1](1)
+  for i = 0, 2 connect dend1_1[i](0), soma(1)
+  for i = 0, 1 connect dend2[i](0), dend1(1)
+  for i = 2, 3 connect dend2[i](0), dend1[1](1)
+  connect dend2[4](0), dend1[2](1)
+  connect SDI(0), dend1[2](1)
+  connect SIprox(0), SDI(1)
+  connect SIdistal(0), SIprox(1)
+  connect axon(0), SIdistal(1)
+  basic_shape()
+}
+proc basic_shape() {
+  soma {pt3dclear() pt3dadd(0, 0, 0, 1) pt3dadd(15, 0, 0, 1)}
+  dend1 {pt3dclear() pt3dadd(0, 0, 0, 1) pt3dadd(-29, 0, 0, 1)}
+  dend1[1] {pt3dclear() pt3dadd(-29, 0, 0, 1) pt3dadd(-59, 0, 0, 1)}
+  dend1[2] {pt3dclear() pt3dadd(-59, 0, 0, 1) pt3dadd(-104, 0, 0, 1)}
+  dend1_1 {pt3dclear() pt3dadd(15, 0, 0, 1) pt3dadd(90, -59, 0, 1)}
+  dend1_1[1] {pt3dclear() pt3dadd(15, 0, 0, 1) pt3dadd(120, 0, 0, 1)}
+  dend1_1[2] {pt3dclear() pt3dadd(15, 0, 0, 1) pt3dadd(105, 60, 0, 1)}
+  dend2 {pt3dclear() pt3dadd(-29, 0, 0, 1) pt3dadd(-29, 60, 0, 1)}
+  dend2[1] {pt3dclear() pt3dadd(-29, 0, 0, 1) pt3dadd(-29, -59, 0, 1)}
+  dend2[2] {pt3dclear() pt3dadd(-59, 0, 0, 1) pt3dadd(-59, 60, 0, 1)}
+  dend2[3] {pt3dclear() pt3dadd(-59, 0, 0, 1) pt3dadd(-59, -59, 0, 1)}
+  SDI {pt3dclear() pt3dadd(-104, 0, 0, 1) pt3dadd(-119, 15, 0, 1)}
+  SIprox {pt3dclear() pt3dadd(-119, 15, 0, 1) pt3dadd(-134, 30, 0, 1)}
+  SIdistal {pt3dclear() pt3dadd(-134, 30, 0, 1) pt3dadd(-164, 60, 0, 1)}
+  axon {pt3dclear() pt3dadd(-164, 60, 0, 1) pt3dadd(-194, 165, 0, 1)}
+  dend2[4] {pt3dclear() pt3dadd(-104, 0, 0, 1) pt3dadd(-164, -44, 0, 1)}
+}
+
+objref all, Secdend
+proc subsets() { local i
+  objref all, Secdend
+  all = new SectionList()
+  Secdend = new SectionList()
+  
+    soma all.append()
+    for i=0, 2 dend1[i] all.append()
+    for i=0, 2 dend1_1[i] all.append()
+    for i=0, 4 dend2[i] all.append()
+    SDI all.append()
+    SIprox all.append()
+    SIdistal all.append()
+    axon all.append()
+	for i=0, 4 dend2[i] Secdend.append()
+
+}
+proc geom() {
+  forsec all {  }
+   soma.L = 20
+   dend1.L = 27
+   dend1[1].L = 26
+   dend1[2].L = 27
+   dend1_1.L = 500
+   dend1_1[1].L = 500
+   dend1_1[2].L = 500
+     dend2.L =500
+   dend2[1].L = 500
+   dend2[2].L = 500
+   dend2[3].L =500
+   dend2[4].L = 500 //axonal
+   SDI.L = 21
+   SIprox.L = 15
+   SIdistal.L = 15
+   axon.L = 800
+   
+  
+  
+}
+proc geom_nseg() {
+  forsec all { nseg = int((L/(0.1*lambda_f(1000))+.999)/2)*2 + 1 }
+}
+
+proc diam_seg() {
+ soma.diam = 20
+   dend1.diam = 3.3
+   dend1[1].diam = 2.75
+   dend1[2].diam = 2.4
+   dend1_1.diam(0:1) = 3:0.5
+   dend1_1[1].diam(0:1) = 3:0.5
+   dend1_1[2].diam(0:1) = 3:0.5
+   dend2.diam(0:1) = 2 : 0.5
+   dend2[1].diam(0:1) = 2 : 0.5
+   dend2[2].diam(0:1) = 2 : 0.5
+   dend2[3].diam(0:1) = 2 : 0.5
+    dend2[4].diam(0:1) = 2:0.5
+   SDI.diam = 1.5
+   SIprox.diam = 1.15
+   SIdistal.diam = 1
+   axon.diam = 0.7
+   
+}
+
+
+proc biophys() {
+  forsec all {
+    Ra = 150
+    cm = 0.75
+
+  }
+  hhN=75 // for Ina and *2 for kdrDA (homo)
+CaN = 1// for Ica and *x for kca (homo)
+KCA= 0.1
+hhsec = 75 // for Ina and *2 for kdrDA (secondary dendrites : hetero)
+Casec =1// for Ica and *x (secondary dendrites : hetero)
+KCAsec= 0.1
+
+hhABD =75 // for Ina and *2 for kdrDA (ABD : hetero)
+CaABD = 1// for Ica and *x (ABD: hetero)
+KCAABD =0.1
+
+  
+  soma {
+    insert Na12
+      gbar_Na12 = hhN
+   insert kdrDA
+      gbar_kdrDA = hhN*2 
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+insert kaDasoma
+gbar_kaDasoma = 150
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaN
+insert cad
+insert kca
+gbar_kca = KCA
+
+
+ena=60
+ek=-90
+  }
+  dend1 {
+    insert Na12
+      gbar_Na12 = hhN
+insert kdrDA
+      gbar_kdrDA = hhN*2
+   insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend1[1] {
+    insert Na12
+      gbar_Na12 = hhN
+   insert kdrDA
+      gbar_kdrDA = hhN*2
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+ insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend1[2] {
+    insert Na12
+      gbar_Na12 = hhN
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend1_1 {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert Na12
+      gbar_Na12 = hhN
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend1_1[1] {
+    insert Na12
+      gbar_Na12 = hhN
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend1_1[2] {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+    insert Na12
+      gbar_Na12 = hhN
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend2 {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert Na12
+      gbar_Na12 = hhN
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+ insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend2[1] {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+    insert Na12
+      gbar_Na12 = hhN
+ insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend2[2] {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert Na12
+      gbar_Na12 = hhN
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  dend2[3] {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+    insert Na12
+      gbar_Na12 = hhN
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+   dend2[4] {
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+    insert Na12
+      gbar_Na12 = hhN
+    insert kdrDA
+      gbar_kdrDA = hhN*2
+insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  SDI {
+insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+        insert Na12
+      gbar_Na12 = hhN
+  insert kdrDA
+      gbar_kdrDA = hhN*2
+	  insert kaDa
+gbar_kaDa = 100
+insert Ih
+gbar_Ih = 3
+insert CAV13
+gbar_CAV13 = CaABD
+insert cad
+insert kca
+gbar_kca = KCAABD
+
+ena=60
+ek=-90
+  }
+  SIprox {
+insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+      insert Na12
+      gbar_Na12 = 2000
+	   
+    insert kdrDA
+      gbar_kdrDA = 1000
+
+ena=60
+ek=-90
+  }
+  SIdistal {
+insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+       insert Na12
+      gbar_Na12 = 2000
+	   
+        insert kdrDA
+      gbar_kdrDA =1000
+ena=60
+ek=-90
+  }
+  axon {
+    insert Na12
+      gbar_Na12 = 400
+	   
+    insert kdrDA
+      gbar_kdrDA = 400
+    insert pasnts
+      g_pasnts = 1e-05
+      e_pasnts = -50
+ena=60
+ek=-90
+  }
+}
